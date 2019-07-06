@@ -7,7 +7,7 @@ import pytest
 from math import pi
 # my modules
 
-from fxgeometry import *
+from fxgeometry.fxgeometry import *
 
 
 def test_rect_size():
