@@ -7,7 +7,7 @@ import pytest
 
 # my modules
 
-from fxgeometry.fxgeometry import *
+from fxgeometry import *
 
 
 def test_vector_add():
