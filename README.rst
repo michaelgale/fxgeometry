@@ -1,8 +1,8 @@
 fxgeometry
 ==========
 
-.. image:: https://travis-ci.org/michaelgale/fxgeometry.svg?branch=master
-   :target: https://travis-ci.org/michaelgale/fxgeometry
+.. image:: https://travis-ci.com/michaelgale/fxgeometry.svg?branch=master
+   :target: https://travis-ci.com/michaelgale/fxgeometry
    :alt: Latest Travis CI build status
 .. image:: https://img.shields.io/badge/license-MIT-blue.svg
    :target: https://github.com/michaelgale/fxgeometry/LICENSE.md
