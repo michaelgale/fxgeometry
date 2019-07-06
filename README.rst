@@ -1,13 +1,11 @@
 fxgeometry
 ==========
 
-.. image:: https://img.shields.io/pypi/v/fxgeometry.svg
-    :target: https://pypi.python.org/pypi/fxgeometry
-    :alt: Latest PyPI version
-
-.. image:: https://travis-ci.org/michaelgale/fxgeometry.png
+.. image:: https://travis-ci.org/michaelgale/fxgeometry.svg?branch=master
    :target: https://travis-ci.org/michaelgale/fxgeometry
    :alt: Latest Travis CI build status
+.. image:: https://img.shields.io/badge/license-MIT-blue.svg
+   :target: https://github.com/michaelgale/fxgeometry/LICENSE.md
 
 A small general purpose library for geometric objects such as points and vectors plus a collection of geometric utility calculations.
 
