@@ -3,3 +3,7 @@
 __version__ = '0.1.0'
 __author__ = 'Michael Gale <michael@fxbricks.com>'
 __all__ = []
+
+script_dir = os.path.dirname(__file__)
+
+from .fxgeometry import *
