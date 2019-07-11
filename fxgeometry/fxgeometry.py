@@ -557,8 +557,17 @@ class Rect:
             self.top = y + self.height / 2
             self.bottom = y - self.height / 2
 
+    def get_top_left(self):
+        return (self.left, self.top)
+
+    def get_bottom_left(self):
+        return (self.left, self.bottom)
+
     def move_top_left_to(self, pt):
-        (x, y) = pt.as_tuple()
+        if isinstance(pt, Point):
+            (x, y) = pt.as_tuple()
+        else:
+            x, y = pt[0], pt[1]
         self.left = x
         self.right = x + self.width
         self.top = y
@@ -568,7 +577,10 @@ class Rect:
             self.bottom = y - self.height
 
     def move_bottom_left_to(self, pt):
-        (x, y) = pt.as_tuple()
+        if isinstance(pt, Point):
+            (x, y) = pt.as_tuple()
+        else:
+            x, y = pt[0], pt[1]
         self.left = x
         self.right = x + self.width
         self.bottom = y
@@ -579,8 +591,14 @@ class Rect:
 
     def set_points(self, pt1, pt2):
         """Reset the rectangle coordinates."""
-        (x1, y1) = pt1.as_tuple()
-        (x2, y2) = pt2.as_tuple()
+        if isinstance(pt1, Point):
+            (x1, y1) = pt1.as_tuple()
+        else:
+            x1, y1 = pt1[0], pt1[1]
+        if isinstance(pt2, Point):
+            (x2, y2) = pt2.as_tuple()
+        else:
+            x2, y2 = pt2[0], pt2[1]
         self.left = min(x1, x2)
         self.right = max(x1, x2)
         if self.bottom_up:
