@@ -508,6 +508,7 @@ class Point:
 
 
 class Size:
+    """ Container class for 2D sizes """
     def __init__(self, width=0, height=0):
         self.width = width
         self.height = height
@@ -520,6 +521,8 @@ class Size:
 
 
 class Rect:
+    """ 2D Rectangle class """
+
     def __init__(self, width=2.0, height=2.0, bottomUp=False):
         self.bottom_up = bottomUp
         self.left = -width / 2.0
@@ -711,3 +714,83 @@ def GetBestRectMetrics(fromWidth, fromHeight, inWidth, inHeight):
         bestHeight = inHeight
         bestWidth = inHeight * fromWidth / fromHeight
     return bestWidth, bestHeight
+
+class RadialPoint:
+    """ Symmetric Radial Points
+
+    A specialized class for computing symmetrically offset points
+    on a circle at a specified angluar offset.  The point on the circle
+    is called 'mid', the point inside the circle is 'inner' and the point
+    outside the cirucle is 'outer' as referred to by the methods 'mid_xy', etc.
+
+    The points are returned re-centred to the origin.  That is, a 'mid' point
+    at angle=0 deg and radius=R is returned at (0, 0).  At angle 45, it would
+    return as (-R + R*cos(45), R*sin(45)).  Positive angles are in the positive
+    'Y' axis and negative angles are in negative 'Y'.
+
+    An optional linear offset can be specified which offsets the point by a
+    tangential amount in either the positive or negative direction.
+    """
+    def __init__(self, radius=0, offset=0, angle=0):
+        self.radius = radius
+        self.offset = offset
+        self.angleDeg = angle
+        self.angleRad = radians(self.angleDeg)
+        self.r_inner = self.radius - self.offset / 2.0
+        self.r_outer = self.radius + self.offset / 2.0
+        self.lin_offset = 0.0
+        self.lin_x = 0.0
+        self.lin_y = 0.0
+
+    def _compute_points(self):
+        self.r_inner = self.radius - self.offset / 2.0
+        self.r_outer = self.radius + self.offset / 2.0
+        self.lin_x = self.lin_offset * sin(self.angleRad)
+        self.lin_y = self.lin_offset * cos(self.angleRad)
+        self.angleRad = radians(self.angleDeg)
+
+    def _radial_x(self, r):
+        x = (r * cos(self.angleRad)) - self.radius - self.lin_x
+        return x
+
+    def _radial_y(self, r):
+        y = r * sin(self.angleRad) + self.lin_y
+        return y
+
+    def inner_xy(self):
+        self._compute_points()
+        return (self._radial_x(self.r_inner), self._radial_y(self.r_inner))
+
+    def inner_3d(self):
+        p = self.inner_xy()
+        return (p[0], p[1], 0.0)
+
+    def outer_xy(self):
+        self._compute_points()
+        return (self._radial_x(self.r_outer), self._radial_y(self.r_outer))
+
+    def outer_3d(self):
+        p = self.outer_xy()
+        return (p[0], p[1], 0.0)
+
+    def mid_xy(self):
+        self._compute_points()
+        return (self._radial_x(self.radius), self._radial_y(self.radius))
+
+    def mid_3d(self):
+        p = self.mid_xy()
+        return (p[0], p[1], 0.0)
+
+    def angle(self):
+        return -self.angleDeg
+
+    def __str__(self):
+        pi = self.inner_xy()
+        po = self.outer_xy()
+        pm = self.mid_xy()
+        return "(%.2f, %.2f) --- (%.2f, %.2f) --- (%.2f, %.2f) / %.2f deg R=%.2f " % (
+          pi[0], pi[1], pm[0], pm[1], po[0], po[1], self.angleDeg, self.radius
+        )
+
+    def __repr__(self):
+        return "%s(%s, %s, %s)" % (self.__class__.__name__, self.radius, self.offset, self.angleDeg)
