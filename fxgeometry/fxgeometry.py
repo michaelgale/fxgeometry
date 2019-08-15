@@ -794,3 +794,8 @@ class RadialPoint:
 
     def __repr__(self):
         return "%s(%s, %s, %s)" % (self.__class__.__name__, self.radius, self.offset, self.angleDeg)
+
+def PrintPointList(pts):
+    nPts = len(pts)
+    for i, pt in enumerate(pts):
+        print("%d/%d: %s" % (i+1, nPts, pt))
