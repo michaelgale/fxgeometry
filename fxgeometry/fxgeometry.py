@@ -731,11 +731,12 @@ class RadialPoint:
     An optional linear offset can be specified which offsets the point by a
     tangential amount in either the positive or negative direction.
     """
-    def __init__(self, radius=0, offset=0, angle=0):
+    def __init__(self, radius=0, offset=0, angle=0, origin=(0,0,0)):
         self.radius = radius
         self.offset = offset
         self.angleDeg = angle
         self.angleRad = radians(self.angleDeg)
+        self.origin = origin
         self.r_inner = self.radius - self.offset / 2.0
         self.r_outer = self.radius + self.offset / 2.0
         self.lin_offset = 0.0
@@ -751,11 +752,26 @@ class RadialPoint:
 
     def _radial_x(self, r):
         x = (r * cos(self.angleRad)) - self.radius - self.lin_x
-        return x
+        return self.origin[0] + x
 
     def _radial_y(self, r):
         y = r * sin(self.angleRad) + self.lin_y
-        return y
+        return self.origin[1] + y
+
+    def distance_to(self, other):
+        xx = (self.origin[0] - other.origin[0])
+        yy = (self.origin[1] - other.origin[1])
+        zz = (self.origin[2] - other.origin[2])
+        return sqrt(xx*xx + yy*yy + zz * zz)
+
+    def slide_xy(self, x, y):
+        o = (self.origin[0] + x, self.origin[1] + y, 0)
+        self.origin = o
+
+    def slide_polar(self, r, theta):
+        x = r * cos(radians(theta))
+        y = r * sin(radians(theta))
+        self.slide_xy(x, y)
 
     def inner_xy(self):
         self._compute_points()
@@ -763,7 +779,7 @@ class RadialPoint:
 
     def inner_3d(self):
         p = self.inner_xy()
-        return (p[0], p[1], 0.0)
+        return (p[0], p[1], self.origin[2])
 
     def outer_xy(self):
         self._compute_points()
@@ -771,7 +787,7 @@ class RadialPoint:
 
     def outer_3d(self):
         p = self.outer_xy()
-        return (p[0], p[1], 0.0)
+        return (p[0], p[1], self.origin[2])
 
     def mid_xy(self):
         self._compute_points()
@@ -779,7 +795,7 @@ class RadialPoint:
 
     def mid_3d(self):
         p = self.mid_xy()
-        return (p[0], p[1], 0.0)
+        return (p[0], p[1], self.origin[2])
 
     def angle(self):
         return -self.angleDeg
