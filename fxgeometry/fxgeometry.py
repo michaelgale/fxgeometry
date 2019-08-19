@@ -811,6 +811,15 @@ class RadialPoint:
     def __repr__(self):
         return "%s(%s, %s, %s)" % (self.__class__.__name__, self.radius, self.offset, self.angleDeg)
 
+def ShiftToOrigin(pts):
+    opts = []
+    xo = pts[0][0]
+    yo = pts[0][1]
+    for pt in pts:
+        opts.append((pt[0] - xo, pt[1] - yo))
+    return opts
+
+
 def PrintPointList(pts):
     nPts = len(pts)
     for i, pt in enumerate(pts):
