@@ -613,6 +613,28 @@ class Rect:
         self.width = abs(x2 - x1)
         self.height = abs(y2 - y1)
 
+    def bounding_rect(self, pts):
+        """Makes a bounding rect from the extents of a list of points"""
+        bx = []
+        by = []
+        for pt in pts:
+            if isinstance(pt, Point):
+                (x, y) = pt.as_tuple()
+            else:
+                x, y = pt[0], pt[1]
+            bx.append(x)
+            by.append(y)
+        self.left = min(bx)
+        self.right = max(bx)
+        if self.bottom_up:
+            self.top = min(by)
+            self.bottom = max(by)
+        else:
+            self.top = max(by)
+            self.bottom = min(by)
+        self.width = abs(self.right - self.left)
+        self.height = abs(self.top - self.bottom)
+
     def set_size(self, width, height):
         self.left = -width / 2
         self.right = width / 2
@@ -735,17 +757,29 @@ class RadialPoint:
         self.radius = radius
         self.offset = offset
         self.angleDeg = angle
-        self.angleRad = radians(self.angleDeg)
+        self.angleRad = radians(angle)
         self.origin = origin
-        self.r_inner = self.radius - self.offset / 2.0
-        self.r_outer = self.radius + self.offset / 2.0
+        self.r_inner = 0
+        self.r_outer = 0
         self.lin_offset = 0.0
         self.lin_x = 0.0
         self.lin_y = 0.0
+        self._compute_points()
 
     def _compute_points(self):
-        self.r_inner = self.radius - self.offset / 2.0
-        self.r_outer = self.radius + self.offset / 2.0
+        ri = self.radius - self.offset / 2.0 + self.origin[0]
+        ro = self.radius + self.offset / 2.0 + self.origin[0]
+        rir = self.radius - self.offset / 2.0
+        ror = self.radius + self.offset / 2.0
+        if (ri < 0) and (ro < 0):
+            self.r_outer = rir
+            self.r_inner = ror
+        elif (ri < 0) and (abs(ri) > abs(ro)):
+            self.r_outer = rir
+            self.r_inner = ror
+        else:
+            self.r_outer = ror
+            self.r_inner = rir
         self.lin_x = self.lin_offset * sin(self.angleRad)
         self.lin_y = self.lin_offset * cos(self.angleRad)
         self.angleRad = radians(self.angleDeg)
@@ -763,6 +797,17 @@ class RadialPoint:
         yy = (self.origin[1] - other.origin[1])
         zz = (self.origin[2] - other.origin[2])
         return sqrt(xx*xx + yy*yy + zz * zz)
+
+    def slide_xy_copy(self, x, y):
+        rp = copy.copy(self)
+        o = (self.origin[0] + x, self.origin[1] + y, 0)
+        rp.origin = o
+        return rp
+
+    def slide_polar_copy(self, r, theta):
+        x = r * cos(radians(theta))
+        y = r * sin(radians(theta))
+        return self.slide_xy_copy(x, y)
 
     def slide_xy(self, x, y):
         o = (self.origin[0] + x, self.origin[1] + y, 0)
@@ -818,6 +863,19 @@ def ShiftToOrigin(pts):
     for pt in pts:
         opts.append((pt[0] - xo, pt[1] - yo))
     return opts
+
+class SplinePoints():
+
+    def __init__(self, pts):
+        self.pts = pts
+        self.pts_origin = []
+        self.xo = pts[0][0]
+        self.yo = pts[0][1]
+        for pt in pts[1:]:
+            self.pts_origin.append((pt[0] - self.xo, pt[1] - self.yo))
+
+    def origin_offset(self):
+        return (self.xo, self.yo)
 
 
 def PrintPointList(pts):
