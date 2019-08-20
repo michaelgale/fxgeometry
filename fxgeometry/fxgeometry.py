@@ -777,6 +777,10 @@ class RadialPoint:
         self._compute_points()
         return (self._radial_x(self.r_inner), self._radial_y(self.r_inner))
 
+    def inner_yx(self):
+        self._compute_points()
+        return (self._radial_y(self.r_inner), self._radial_x(self.r_inner))
+
     def inner_3d(self):
         p = self.inner_xy()
         return (p[0], p[1], self.origin[2])
@@ -784,6 +788,9 @@ class RadialPoint:
     def outer_xy(self):
         self._compute_points()
         return (self._radial_x(self.r_outer), self._radial_y(self.r_outer))
+    def outer_yx(self):
+        self._compute_points()
+        return (self._radial_y(self.r_outer), self._radial_x(self.r_outer))
 
     def outer_3d(self):
         p = self.outer_xy()
@@ -792,6 +799,9 @@ class RadialPoint:
     def mid_xy(self):
         self._compute_points()
         return (self._radial_x(self.radius), self._radial_y(self.radius))
+    def mid_yx(self):
+        self._compute_points()
+        return (self._radial_y(self.radius), self._radial_x(self.radius))
 
     def mid_3d(self):
         p = self.mid_xy()
