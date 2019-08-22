@@ -381,8 +381,19 @@ class CoordinateSystem(object):
 
 class Point:
     def __init__(self, x=0.0, y=0.0):
-        self.x = x
-        self.y = y
+        if isinstance(x, tuple):
+            self.x = x[0]
+            self.y = x[1]
+        elif isinstance(x, list):
+            if isinstance(x[0], tuple):
+                self.x = x[0][0]
+                self.y = x[0][1]
+            else:
+                self.x = x[0]
+                self.y = x[1]
+        else:
+            self.x = x
+            self.y = y
 
     def __add__(self, p):
         """Point(x1+x2, y1+y2)"""
@@ -736,6 +747,8 @@ def GetBestRectMetrics(fromWidth, fromHeight, inWidth, inHeight):
         bestHeight = inHeight
         bestWidth = inHeight * fromWidth / fromHeight
     return bestWidth, bestHeight
+
+
 
 class RadialPoint:
     """ Symmetric Radial Points
