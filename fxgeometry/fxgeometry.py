@@ -872,7 +872,7 @@ class RadialPoint:
         pi = self.inner_xy()
         po = self.outer_xy()
         pm = self.mid_xy()
-        return "(%.2f, %.2f) --- (%.2f, %.2f) --- (%.2f, %.2f) / %.2f deg R=%.2f " % (
+        return "(%7.2f, %7.2f) --- (%7.2f, %7.2f) --- (%7.2f, %7.2f) / %7.2f deg R=%.2f " % (
           pi[0], pi[1], pm[0], pm[1], po[0], po[1], self.angleDeg, self.radius
         )
 
