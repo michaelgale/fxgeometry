@@ -690,7 +690,7 @@ class Rect:
         return Rect(p1, p2)
 
     def __str__(self):
-        return "<Rect (%s,%s)-(%s,%s)>" % (self.left, self.top, self.right, self.bottom)
+        return "<Rect (%.2f,%.2f)-(%.2f,%.2f)>" % (self.left, self.top, self.right, self.bottom)
 
     def __repr__(self):
         return "%s(%r, %r)" % (
