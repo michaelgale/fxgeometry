@@ -687,7 +687,9 @@ class Rect:
         """
         p1 = Point(self.left - n, self.top - n)
         p2 = Point(self.right + n, self.bottom + n)
-        return Rect(p1, p2)
+        r = Rect()
+        r.set_points(p1, p2)
+        return r
 
     def __str__(self):
         return "<Rect (%.2f,%.2f)-(%.2f,%.2f)>" % (self.left, self.top, self.right, self.bottom)
