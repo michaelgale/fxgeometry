@@ -807,6 +807,11 @@ class RadialPoint:
         y = r * sin(self.angleRad) + self.lin_y
         return self.origin[1] + y
 
+    def _radial_xoffs(self, r):
+        return r * sin(self.angleRad)
+    def _radial_yoffs(self, r):
+        return r * cos(self.angleRad)
+
     def distance_to(self, other):
         xx = (self.origin[0] - other.origin[0])
         yy = (self.origin[1] - other.origin[1])
@@ -828,43 +833,47 @@ class RadialPoint:
         o = (self.origin[0] + x, self.origin[1] + y, 0)
         self.origin = o
 
+    def _swapped(x, y):
+        return y, x
+
     def slide_polar(self, r, theta):
         x = r * cos(radians(theta))
         y = r * sin(radians(theta))
         self.slide_xy(x, y)
 
-    def inner_xy(self):
+    def inner_xy(self, radial_offset=0.0):
         self._compute_points()
-        return (self._radial_x(self.r_inner), self._radial_y(self.r_inner))
+        return (self._radial_x(self.r_inner) - self._radial_xoffs(radial_offset),
+                self._radial_y(self.r_inner) + self._radial_yoffs(radial_offset))
 
-    def inner_yx(self):
-        self._compute_points()
-        return (self._radial_y(self.r_inner), self._radial_x(self.r_inner))
+    def inner_yx(self, radial_offset=0.0):
+        return (_swapped(self.inner_xy(radial_offset)))
 
-    def inner_3d(self):
-        p = self.inner_xy()
+    def inner_3d(self, radial_offset=0.0):
+        p = self.inner_xy(radial_offset)
         return (p[0], p[1], self.origin[2])
 
-    def outer_xy(self):
+    def outer_xy(self, radial_offset=0.0):
         self._compute_points()
-        return (self._radial_x(self.r_outer), self._radial_y(self.r_outer))
-    def outer_yx(self):
-        self._compute_points()
-        return (self._radial_y(self.r_outer), self._radial_x(self.r_outer))
+        return (self._radial_x(self.r_outer) - self._radial_xoffs(radial_offset),
+                self._radial_y(self.r_outer) + self._radial_yoffs(radial_offset))
 
-    def outer_3d(self):
-        p = self.outer_xy()
+    def outer_yx(self, radial_offset=0.0):
+        return (_swapped(self.outer_xy(radial_offset)))
+
+    def outer_3d(self, radial_offset=0.0):
+        p = self.outer_xy(radial_offset)
         return (p[0], p[1], self.origin[2])
 
-    def mid_xy(self):
+    def mid_xy(self, radial_offset=0.0):
         self._compute_points()
-        return (self._radial_x(self.radius), self._radial_y(self.radius))
-    def mid_yx(self):
-        self._compute_points()
-        return (self._radial_y(self.radius), self._radial_x(self.radius))
+        return (self._radial_x(self.radius) - self._radial_xoffs(radial_offset),
+                self._radial_y(self.radius) + self._radial_yoffs(radial_offset))
+    def mid_yx(self, radial_offset=0.0):
+        return (_swapped(self.mid_xy(radial_offset)))
 
-    def mid_3d(self):
-        p = self.mid_xy()
+    def mid_3d(self, radial_offset=0.0):
+        p = self.mid_xy(radial_offset)
         return (p[0], p[1], self.origin[2])
 
     def angle(self):
@@ -874,7 +883,7 @@ class RadialPoint:
         pi = self.inner_xy()
         po = self.outer_xy()
         pm = self.mid_xy()
-        return "(%7.2f, %7.2f) --- (%7.2f, %7.2f) --- (%7.2f, %7.2f) / %7.2f deg R=%.2f " % (
+        return "(%7.2f, %7.2f) -- (%7.2f, %7.2f) -- (%7.2f, %7.2f) / %7.2f deg R=%.2f " % (
           pi[0], pi[1], pm[0], pm[1], po[0], po[1], self.angleDeg, self.radius
         )
 
