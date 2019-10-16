@@ -916,3 +916,26 @@ def PrintPointList(pts):
     nPts = len(pts)
     for i, pt in enumerate(pts):
         print("%d/%d: %s" % (i+1, nPts, pt))
+
+def PrintPointsInDict(dict):
+    for key, value in dict.items():
+        if isinstance(value, list):
+            s = []
+            s.append("%17s: [" %(key))
+            if isinstance(value, (tuple, list)):
+                for v in value:
+                    if isinstance(v, (tuple, list)):
+                        s.append("(%6.2f, %6.2f), " % (v[0], v[1]))
+            else:
+                s.append("%s" % (value))
+            s.append("]")
+            rs = ''.join(s)
+            rs = rs.replace("), ]", ")]")
+            print(rs)
+        elif isinstance(value, tuple):
+            if isinstance(value[0], tuple):
+                print("%17s: (%6.2f, %6.2f), (%6.2f, %6.2f)" % (key, value[0][0], value[0][1], value[1][0], value[1][1]))
+            else:
+                print("%17s: (%6.2f, %6.2f)" % (key, value[0], value[1]))
+        else:
+            print("%17s: %s" % (key, value))
