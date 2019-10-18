@@ -560,8 +560,22 @@ class Rect:
             y = self.top - self.height / 2
         return x, y
 
-    def move_to(self, pt):
-        (x, y) = pt.as_tuple()
+    def get_pts(self):
+        return [ (self.left, self.top), (self.right, self.top),
+        (self.left, self.bottom), (self.right, self.bottom)
+        ]
+    def get_pts_3d(self, height=0):
+        return [ (self.left, self.top, height), (self.right, self.top, height),
+        (self.left, self.bottom, height), (self.right, self.bottom, height)
+        ]
+
+    def move_to(self, pt, py=None):
+        if isinstance(pt, Point):
+            (x, y) = pt.as_tuple()
+        elif isinstance(pt, tuple):
+            x, y = pt[0], pt[1]
+        else:
+            x, y = pt, py
         self.left = x - self.width / 2
         self.right = x + self.width / 2
         if self.bottom_up:
