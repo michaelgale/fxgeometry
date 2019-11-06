@@ -953,3 +953,47 @@ def PrintPointsInDict(dict):
                 print("%17s: (%6.2f, %6.2f)" % (key, value[0], value[1]))
         else:
             print("%17s: %s" % (key, value))
+
+def points2d_at_height(pts, height):
+    """ Returns a list of 2D point tuples as 3D tuples at height"""
+    if isinstance(pts, tuple):
+        if len(pts) == 2:
+            return [(*pts, height)]
+        return [(pts[0], pts[1], height)]
+    pts3d = []
+    for pt in pts:
+        if len(pt) == 3:
+            pts3d.append((pt[0], pt[1], height))
+        else:
+            pts3d.append((*pt, height))
+    return pts3d
+
+def grid_points_2d(length, width, div, width_div=None):
+    """ Returns a regularly spaced grid of points occupying a rectangular
+    region of length x width partitioned into div intervals.  If different
+    spacing is desired in width, then width_div can be specified, otherwise
+    it will default to div. If div < 2 in either x or y, then the corresponding
+    coordinate will be set to length or width respectively."""
+    if div > 1:
+        px = [-length/2.0 + (x/(div-1))*length for x in range(div)]
+    else:
+        px = [length]
+    if width_div is not None:
+        wd = width_div
+    else:
+        wd = div
+    if wd > 1:
+        py = [-width/2.0 + (y/(wd-1))*width for y in range(wd)]
+    else:
+        py = [width]
+    pts = []
+    for x in px:
+        for y in py:
+            pts.append((x, y))
+    return pts
+
+def grid_points_at_height(length, width, height, div, width_div=None):
+    """ A convenience method to return 2D grid points as 3D points at
+    a specified height"""
+    pts = grid_points_2d(length, width, div, width_div)
+    return points2d_at_height(pts, height)
