@@ -1,4 +1,3 @@
-
 import copy
 import math
 from math import sin, cos, radians, sqrt, atan, degrees, atan2, hypot
@@ -520,6 +519,7 @@ class Point:
 
 class Size:
     """ Container class for 2D sizes """
+
     def __init__(self, width=0, height=0):
         self.width = width
         self.height = height
@@ -547,9 +547,13 @@ class Rect:
         self.width = abs(self.right - self.left)
         self.height = abs(self.top - self.bottom)
 
-
     def __str__(self):
-        return "<Rect (%.2f,%.2f)-(%.2f,%.2f)>" % (self.left, self.top, self.right, self.bottom)
+        return "<Rect (%.2f,%.2f)-(%.2f,%.2f)>" % (
+            self.left,
+            self.top,
+            self.right,
+            self.bottom,
+        )
 
     def __repr__(self):
         return "%s(%r, %r)" % (
@@ -579,12 +583,19 @@ class Rect:
         return x, y
 
     def get_pts(self):
-        return [ (self.left, self.top), (self.right, self.top),
-        (self.left, self.bottom), (self.right, self.bottom)
+        return [
+            (self.left, self.top),
+            (self.right, self.top),
+            (self.left, self.bottom),
+            (self.right, self.bottom),
         ]
+
     def get_pts_3d(self, height=0):
-        return [ (self.left, self.top, height), (self.right, self.top, height),
-        (self.left, self.bottom, height), (self.right, self.bottom, height)
+        return [
+            (self.left, self.top, height),
+            (self.right, self.top, height),
+            (self.left, self.bottom, height),
+            (self.right, self.bottom, height),
         ]
 
     def move_to(self, pt, py=None):
@@ -621,15 +632,15 @@ class Rect:
         elif "right" in anchor_pt:
             x = self.right
         else:
-            x = self.left + self.width/2
+            x = self.left + self.width / 2
         if "top" in anchor_pt:
             y = self.top
         elif "bottom" in anchor_pt:
             y = self.bottom
         else:
-            y = self.top - self.height/2
+            y = self.top - self.height / 2
         return x, y
- 
+
     def _xy_from_pt(self, pt):
         if isinstance(pt, Point):
             (x, y) = pt.as_tuple()
@@ -746,8 +757,8 @@ class Rect:
             x1 = self.right
             x2 = self.right - width
         else:
-            x1 = self.left + self.width/2 - width/2
-            x2 = self.right - self.width/2 + width/2
+            x1 = self.left + self.width / 2 - width / 2
+            x2 = self.right - self.width / 2 + width / 2
         if "top" in anchor_pt:
             y1 = self.top
             y2 = self.top - height
@@ -755,8 +766,8 @@ class Rect:
             y1 = self.bottom
             y2 = self.bottom + height
         else:
-            y1 = self.top - self.height/2 + height/2
-            y2 = self.bottom + self.height/2 - height/2
+            y1 = self.top - self.height / 2 + height / 2
+            y2 = self.bottom + self.height / 2 - height / 2
         if self.bottom_up:
             y1, y2 = y2, y1
         self.set_points((x1, y1), (x2, y2))
@@ -772,7 +783,7 @@ class Rect:
             x2 = x
             x1 = min(self.left, x) if "resize" in to_pt else x2 - self.width
         elif "centre" in from_pt or "center" in from_pt:
-            x1 = x - self.width/2
+            x1 = x - self.width / 2
             x2 = x1 + self.width
         else:
             x1 = self.left
@@ -793,7 +804,7 @@ class Rect:
             y1, y2 = min(y2, y1), max(y2, y1)
         self.set_points((x1, y1), (x2, y2))
 
-    def anchor_to_rect(self, rect, anchor_pt= "centre centre"):
+    def anchor_to_rect(self, rect, anchor_pt="centre centre"):
         """Moves rectangle to an anchor reference of another rectangle.
         'top left' moves this rectangle to the other rectangle's top left
         for example."""
@@ -866,10 +877,17 @@ class Rect:
         return r
 
     @staticmethod
-    def layout_rects(rects, bounds, row_wise=True, vert_align="top", horz_align="left", auto_adjust=True):
+    def layout_rects(
+        rects,
+        bounds,
+        row_wise=True,
+        vert_align="top",
+        horz_align="left",
+        auto_adjust=True,
+    ):
         def dict_idx(row, col):
-            return "%d_%d" % (row, col)        
-    
+            return "%d_%d" % (row, col)
+
         def compute_wasted_space(rd, row_wise=True):
             rows, cols = 0, 0
             for k, v in rd.items():
@@ -902,7 +920,7 @@ class Rect:
             return ws
 
         wasted_space = 1.0
-        
+
         times = 0 if auto_adjust else 9
         last_wasted_space = 1.0
         while (wasted_space > 0.25) and (times < 10):
@@ -969,7 +987,6 @@ class Rect:
                     bounds.height = abs(bounds.bottom - bounds.top)
                 times += 1
 
-
         # Re-align each row or column based on vert_align and horz_align respectively
         rows, cols = 0, 0
         for k, v in rd.items():
@@ -991,7 +1008,7 @@ class Rect:
                         if vert_align == "bottom":
                             r.move_bottom_left_to((r.left, r.top - rh))
                         elif vert_align == "centre":
-                            r.move_top_left_to((r.left, r.top - rh/2 + r.height/2))
+                            r.move_top_left_to((r.left, r.top - rh / 2 + r.height / 2))
                         new_rects.append(r)
         else:
             for col in range(cols):
@@ -1005,9 +1022,9 @@ class Rect:
                         if horz_align == "right":
                             r.move_top_left_to((r.left + cw - r.width, r.top))
                         elif horz_align == "centre":
-                            r.move_top_left_to((r.left + cw/2 - r.width/2, r.top))
+                            r.move_top_left_to((r.left + cw / 2 - r.width / 2, r.top))
                         new_rects.append(r)
-          
+
         return new_rects
 
 
@@ -1060,7 +1077,6 @@ def GetBestRectMetrics(fromWidth, fromHeight, inWidth, inHeight):
     return bestWidth, bestHeight
 
 
-
 class RadialPoint:
     """ Symmetric Radial Points
 
@@ -1077,7 +1093,8 @@ class RadialPoint:
     An optional linear offset can be specified which offsets the point by a
     tangential amount in either the positive or negative direction.
     """
-    def __init__(self, radius=0, offset=0, angle=0, origin=(0,0,0)):
+
+    def __init__(self, radius=0, offset=0, angle=0, origin=(0, 0, 0)):
         self.radius = radius
         self.offset = offset
         self.angleDeg = angle
@@ -1118,14 +1135,15 @@ class RadialPoint:
 
     def _radial_xoffs(self, r):
         return r * sin(self.angleRad)
+
     def _radial_yoffs(self, r):
         return r * cos(self.angleRad)
 
     def distance_to(self, other):
-        xx = (self.origin[0] - other.origin[0])
-        yy = (self.origin[1] - other.origin[1])
-        zz = (self.origin[2] - other.origin[2])
-        return sqrt(xx*xx + yy*yy + zz * zz)
+        xx = self.origin[0] - other.origin[0]
+        yy = self.origin[1] - other.origin[1]
+        zz = self.origin[2] - other.origin[2]
+        return sqrt(xx * xx + yy * yy + zz * zz)
 
     def slide_xy_copy(self, x, y):
         rp = copy.copy(self)
@@ -1152,11 +1170,13 @@ class RadialPoint:
 
     def inner_xy(self, radial_offset=0.0):
         self._compute_points()
-        return (self._radial_x(self.r_inner) - self._radial_xoffs(radial_offset),
-                self._radial_y(self.r_inner) + self._radial_yoffs(radial_offset))
+        return (
+            self._radial_x(self.r_inner) - self._radial_xoffs(radial_offset),
+            self._radial_y(self.r_inner) + self._radial_yoffs(radial_offset),
+        )
 
     def inner_yx(self, radial_offset=0.0):
-        return (_swapped(self.inner_xy(radial_offset)))
+        return _swapped(self.inner_xy(radial_offset))
 
     def inner_3d(self, radial_offset=0.0):
         p = self.inner_xy(radial_offset)
@@ -1164,11 +1184,13 @@ class RadialPoint:
 
     def outer_xy(self, radial_offset=0.0):
         self._compute_points()
-        return (self._radial_x(self.r_outer) - self._radial_xoffs(radial_offset),
-                self._radial_y(self.r_outer) + self._radial_yoffs(radial_offset))
+        return (
+            self._radial_x(self.r_outer) - self._radial_xoffs(radial_offset),
+            self._radial_y(self.r_outer) + self._radial_yoffs(radial_offset),
+        )
 
     def outer_yx(self, radial_offset=0.0):
-        return (_swapped(self.outer_xy(radial_offset)))
+        return _swapped(self.outer_xy(radial_offset))
 
     def outer_3d(self, radial_offset=0.0):
         p = self.outer_xy(radial_offset)
@@ -1176,10 +1198,13 @@ class RadialPoint:
 
     def mid_xy(self, radial_offset=0.0):
         self._compute_points()
-        return (self._radial_x(self.radius) - self._radial_xoffs(radial_offset),
-                self._radial_y(self.radius) + self._radial_yoffs(radial_offset))
+        return (
+            self._radial_x(self.radius) - self._radial_xoffs(radial_offset),
+            self._radial_y(self.radius) + self._radial_yoffs(radial_offset),
+        )
+
     def mid_yx(self, radial_offset=0.0):
-        return (_swapped(self.mid_xy(radial_offset)))
+        return _swapped(self.mid_xy(radial_offset))
 
     def mid_3d(self, radial_offset=0.0):
         p = self.mid_xy(radial_offset)
@@ -1192,12 +1217,19 @@ class RadialPoint:
         pi = self.inner_xy()
         po = self.outer_xy()
         pm = self.mid_xy()
-        return "(%7.2f, %7.2f) -- (%7.2f, %7.2f) -- (%7.2f, %7.2f) / %7.2f deg R=%.2f " % (
-          pi[0], pi[1], pm[0], pm[1], po[0], po[1], self.angleDeg, self.radius
+        return (
+            "(%7.2f, %7.2f) -- (%7.2f, %7.2f) -- (%7.2f, %7.2f) / %7.2f deg R=%.2f "
+            % (pi[0], pi[1], pm[0], pm[1], po[0], po[1], self.angleDeg, self.radius)
         )
 
     def __repr__(self):
-        return "%s(%s, %s, %s)" % (self.__class__.__name__, self.radius, self.offset, self.angleDeg)
+        return "%s(%s, %s, %s)" % (
+            self.__class__.__name__,
+            self.radius,
+            self.offset,
+            self.angleDeg,
+        )
+
 
 def ShiftToOrigin(pts):
     opts = []
@@ -1207,8 +1239,8 @@ def ShiftToOrigin(pts):
         opts.append((pt[0] - xo, pt[1] - yo))
     return opts
 
-class SplinePoints():
 
+class SplinePoints:
     def __init__(self, pts):
         self.pts = pts
         self.pts_origin = []
@@ -1224,13 +1256,14 @@ class SplinePoints():
 def PrintPointList(pts):
     nPts = len(pts)
     for i, pt in enumerate(pts):
-        print("%d/%d: %s" % (i+1, nPts, pt))
+        print("%d/%d: %s" % (i + 1, nPts, pt))
+
 
 def PrintPointsInDict(dict):
     for key, value in dict.items():
         if isinstance(value, list):
             s = []
-            s.append("%17s: [" %(key))
+            s.append("%17s: [" % (key))
             if isinstance(value, (tuple, list)):
                 for v in value:
                     if isinstance(v, (tuple, list)):
@@ -1238,16 +1271,20 @@ def PrintPointsInDict(dict):
             else:
                 s.append("%s" % (value))
             s.append("]")
-            rs = ''.join(s)
+            rs = "".join(s)
             rs = rs.replace("), ]", ")]")
             print(rs)
         elif isinstance(value, tuple):
             if isinstance(value[0], tuple):
-                print("%17s: (%6.2f, %6.2f), (%6.2f, %6.2f)" % (key, value[0][0], value[0][1], value[1][0], value[1][1]))
+                print(
+                    "%17s: (%6.2f, %6.2f), (%6.2f, %6.2f)"
+                    % (key, value[0][0], value[0][1], value[1][0], value[1][1])
+                )
             else:
                 print("%17s: (%6.2f, %6.2f)" % (key, value[0], value[1]))
         else:
             print("%17s: %s" % (key, value))
+
 
 def points2d_at_height(pts, height):
     """ Returns a list of 2D point tuples as 3D tuples at height"""
@@ -1263,6 +1300,7 @@ def points2d_at_height(pts, height):
             pts3d.append((*pt, height))
     return pts3d
 
+
 def grid_points_2d(length, width, div, width_div=None):
     """ Returns a regularly spaced grid of points occupying a rectangular
     region of length x width partitioned into div intervals.  If different
@@ -1270,7 +1308,7 @@ def grid_points_2d(length, width, div, width_div=None):
     it will default to div. If div < 2 in either x or y, then the corresponding
     coordinate will be set to length or width respectively."""
     if div > 1:
-        px = [-length/2.0 + (x/(div-1))*length for x in range(div)]
+        px = [-length / 2.0 + (x / (div - 1)) * length for x in range(div)]
     else:
         px = [length]
     if width_div is not None:
@@ -1278,7 +1316,7 @@ def grid_points_2d(length, width, div, width_div=None):
     else:
         wd = div
     if wd > 1:
-        py = [-width/2.0 + (y/(wd-1))*width for y in range(wd)]
+        py = [-width / 2.0 + (y / (wd - 1)) * width for y in range(wd)]
     else:
         py = [width]
     pts = []
@@ -1287,11 +1325,13 @@ def grid_points_2d(length, width, div, width_div=None):
             pts.append((x, y))
     return pts
 
+
 def grid_points_at_height(length, width, height, div, width_div=None):
     """ A convenience method to return 2D grid points as 3D points at
     a specified height"""
     pts = grid_points_2d(length, width, div, width_div)
     return points2d_at_height(pts, height)
+
 
 def euler_to_rot_matrix(euler):
     """ converts a 3D tuple of euler rotation angles into a rotation matrix """
@@ -1302,6 +1342,7 @@ def euler_to_rot_matrix(euler):
     rm = rm.transpose()
     return rm
 
+
 def safe_vector(v):
     """ returns a Vector object by automatically inferring the input argument v """
     if isinstance(v, Vector):
@@ -1311,4 +1352,3 @@ def safe_vector(v):
     elif isinstance(v, (float, int)):
         return Vector(v, v, v)
     return Vector(0, 0, 0)
-    
