@@ -547,6 +547,24 @@ class Rect:
         self.width = abs(self.right - self.left)
         self.height = abs(self.top - self.bottom)
 
+
+    def __str__(self):
+        return "<Rect (%.2f,%.2f)-(%.2f,%.2f)>" % (self.left, self.top, self.right, self.bottom)
+
+    def __repr__(self):
+        return "%s(%r, %r)" % (
+            self.__class__.__name__,
+            Point(self.left, self.top),
+            Point(self.right, self.bottom),
+        )
+
+    def copy(self):
+        r = Rect(self.width, self.height)
+        r.left, r.right = self.left, self.right
+        r.top, r.bottom = self.top, self.bottom
+        r.bottom_up = self.bottom_up
+        return r
+
     def get_size(self):
         self.width = abs(self.right - self.left)
         self.height = abs(self.top - self.bottom)
@@ -591,11 +609,36 @@ class Rect:
     def get_bottom_left(self):
         return (self.left, self.bottom)
 
-    def move_top_left_to(self, pt):
+    def get_top_right(self):
+        return (self.right, self.top)
+
+    def get_bottom_right(self):
+        return (self.right, self.bottom)
+
+    def get_anchor_pt(self, anchor_pt):
+        if "left" in anchor_pt:
+            x = self.left
+        elif "right" in anchor_pt:
+            x = self.right
+        else:
+            x = self.left + self.width/2
+        if "top" in anchor_pt:
+            y = self.top
+        elif "bottom" in anchor_pt:
+            y = self.bottom
+        else:
+            y = self.top - self.height/2
+        return x, y
+ 
+    def _xy_from_pt(self, pt):
         if isinstance(pt, Point):
             (x, y) = pt.as_tuple()
         else:
             x, y = pt[0], pt[1]
+        return x, y
+
+    def move_top_left_to(self, pt):
+        x, y = self._xy_from_pt(pt)
         self.left = x
         self.right = x + self.width
         self.top = y
@@ -604,11 +647,18 @@ class Rect:
         else:
             self.bottom = y - self.height
 
-    def move_bottom_left_to(self, pt):
-        if isinstance(pt, Point):
-            (x, y) = pt.as_tuple()
+    def move_top_right_to(self, pt):
+        x, y = self._xy_from_pt(pt)
+        self.right = x
+        self.left = x - self.width
+        self.top = y
+        if self.bottom_up:
+            self.bottom = y + self.height
         else:
-            x, y = pt[0], pt[1]
+            self.bottom = y - self.height
+
+    def move_bottom_left_to(self, pt):
+        x, y = self._xy_from_pt(pt)
         self.left = x
         self.right = x + self.width
         self.bottom = y
@@ -617,16 +667,20 @@ class Rect:
         else:
             self.top = y + self.height
 
+    def move_bottom_right_to(self, pt):
+        x, y = self._xy_from_pt(pt)
+        self.right = x
+        self.left = x - self.width
+        self.bottom = y
+        if self.bottom_up:
+            self.top = y - self.height
+        else:
+            self.top = y + self.height
+
     def set_points(self, pt1, pt2):
         """Reset the rectangle coordinates."""
-        if isinstance(pt1, Point):
-            (x1, y1) = pt1.as_tuple()
-        else:
-            x1, y1 = pt1[0], pt1[1]
-        if isinstance(pt2, Point):
-            (x2, y2) = pt2.as_tuple()
-        else:
-            x2, y2 = pt2[0], pt2[1]
+        x1, y1 = self._xy_from_pt(pt1)
+        x2, y2 = self._xy_from_pt(pt2)
         self.left = min(x1, x2)
         self.right = max(x1, x2)
         if self.bottom_up:
@@ -639,12 +693,20 @@ class Rect:
         self.height = abs(y2 - y1)
 
     def bounding_rect(self, pts):
-        """Makes a bounding rect from the extents of a list of points"""
+        """Makes a bounding rect from the extents of a list of points 
+        or a list of rects """
+        if len(pts) == 0:
+            return
         bx = []
         by = []
         for pt in pts:
             if isinstance(pt, Point):
                 (x, y) = pt.as_tuple()
+            elif isinstance(pt, Rect):
+                x, y = pt.left, pt.top
+                bx.append(x)
+                by.append(y)
+                x, y = pt.right, pt.bottom
             else:
                 x, y = pt[0], pt[1]
             bx.append(x)
@@ -661,6 +723,7 @@ class Rect:
         self.height = abs(self.top - self.bottom)
 
     def set_size(self, width, height):
+        """Sets a new size for the rectangle."""
         self.left = -width / 2
         self.right = width / 2
         if self.bottom_up:
@@ -672,9 +735,100 @@ class Rect:
         self.width = width
         self.height = height
 
+    def set_size_anchored(self, width, height, anchor_pt="centre centre"):
+        """Sets a new size for the rectangle and optionally anchors the 
+        rectangle to any one of 10 points specified with a string containing
+        anchor point description, e.g. 'top left', 'right', 'bottom centre' """
+        if "left" in anchor_pt:
+            x1 = self.left
+            x2 = self.left + width
+        elif "right" in anchor_pt:
+            x1 = self.right
+            x2 = self.right - width
+        else:
+            x1 = self.left + self.width/2 - width/2
+            x2 = self.right - self.width/2 + width/2
+        if "top" in anchor_pt:
+            y1 = self.top
+            y2 = self.top - height
+        elif "bottom" in anchor_pt:
+            y1 = self.bottom
+            y2 = self.bottom + height
+        else:
+            y1 = self.top - self.height/2 + height/2
+            y2 = self.bottom + self.height/2 - height/2
+        if self.bottom_up:
+            y1, y2 = y2, y1
+        self.set_points((x1, y1), (x2, y2))
+
+    def anchor_to_pt(self, rect, from_pt="centre centre", to_pt="centre centre"):
+        """Moves a rectangle from its anchor point to another rectangle's 
+        anchor point. Example: "top right" to "bottom left" """
+        x, y = rect.get_anchor_pt(to_pt)
+        if "left" in from_pt:
+            x1 = x
+            x2 = max(x, self.right) if "resize" in to_pt else x1 + self.width
+        elif "right" in from_pt:
+            x2 = x
+            x1 = min(self.left, x) if "resize" in to_pt else x2 - self.width
+        elif "centre" in from_pt or "center" in from_pt:
+            x1 = x - self.width/2
+            x2 = x1 + self.width
+        else:
+            x1 = self.left
+            x2 = self.right
+        if "top" in from_pt:
+            y1 = y
+            y2 = min(y, self.bottom) if "resize" in to_pt else y1 - self.height
+        elif "bottom" in from_pt:
+            y2 = y
+            y1 = max(self.top, y) if "resize" in to_pt else y2 + self.height
+        elif "centre" in from_pt or "center" in from_pt:
+            y1 = y + self.height / 2
+            y2 = y1 - self.height
+        else:
+            y1 = self.top
+            y2 = self.bottom
+        if self.bottom_up:
+            y1, y2 = min(y2, y1), max(y2, y1)
+        self.set_points((x1, y1), (x2, y2))
+
+    def anchor_to_rect(self, rect, anchor_pt= "centre centre"):
+        """Moves rectangle to an anchor reference of another rectangle.
+        'top left' moves this rectangle to the other rectangle's top left
+        for example."""
+        self.anchor_to_pt(rect, anchor_pt, anchor_pt)
+
+    def anchor_with_constraint(self, rect, constraint):
+        """Moves a rectangle from its anchor point to another rectangle's 
+        anchor point. Example: "top right to bottom left" or "below" """
+        c = constraint.lower()
+        if c == "below":
+            self.anchor_to_pt(rect, from_pt="top", to_pt="bottom")
+        elif c == "above":
+            self.anchor_to_pt(rect, from_pt="bottom", to_pt="top")
+        elif c == "rightof":
+            self.anchor_to_pt(rect, from_pt="left", to_pt="right")
+        elif c == "leftof":
+            self.anchor_to_pt(rect, from_pt="right", to_pt="left")
+        elif c == "middleof":
+            self.anchor_to_pt(rect, from_pt="centre", to_pt="centre")
+        else:
+            c = constraint.split()
+            cu = []
+            for e in c:
+                if e.lower() == "to":
+                    cu.append("TO")
+                else:
+                    cu.append(e.lower())
+            c = " ".join(cu)
+            c = c.split("TO")
+            if len(c) == 2:
+                self.anchor_to_pt(rect, from_pt=c[0], to_pt=c[1])
+
     def contains(self, pt):
         """Return true if a point is inside the rectangle."""
-        x, y = pt.as_tuple()
+        x, y = self._xy_from_pt(pt)
         if self.left <= x <= self.right:
             if not self.bottom_up:
                 if self.bottom <= y <= self.top:
@@ -705,15 +859,156 @@ class Rect:
         r.set_points(p1, p2)
         return r
 
-    def __str__(self):
-        return "<Rect (%.2f,%.2f)-(%.2f,%.2f)>" % (self.left, self.top, self.right, self.bottom)
+    @staticmethod
+    def bounding_rect_from_rects(rects):
+        r = Rect()
+        r.bounding_rect(rects)
+        return r
 
-    def __repr__(self):
-        return "%s(%r, %r)" % (
-            self.__class__.__name__,
-            Point(self.left, self.top),
-            Point(self.right, self.bottom),
-        )
+    @staticmethod
+    def layout_rects(rects, bounds, row_wise=True, vert_align="top", horz_align="left", auto_adjust=True):
+        def dict_idx(row, col):
+            return "%d_%d" % (row, col)        
+    
+        def compute_wasted_space(rd, row_wise=True):
+            rows, cols = 0, 0
+            for k, v in rd.items():
+                row, col = k.split("_")
+                rows = max(rows, int(row))
+                cols = max(cols, int(col))
+            rows += 1
+            cols += 1
+            rws = []
+            if row_wise:
+                for row in range(rows):
+                    rw = 0
+                    for col in range(cols):
+                        if dict_idx(row, col) in rd:
+                            r = rd["%d_%d" % (row, col)]
+                            rw += r.width
+                    rws.append(rw)
+            else:
+                for col in range(cols):
+                    ch = 0
+                    for row in range(rows):
+                        if dict_idx(row, col) in rd:
+                            r = rd["%d_%d" % (row, col)]
+                            ch += r.height
+                    rws.append(ch)
+            if abs(max(rws)) > 0:
+                ws = (max(rws) - min(rws)) / max(rws)
+            else:
+                ws = 0
+            return ws
+
+        wasted_space = 1.0
+        
+        times = 0 if auto_adjust else 9
+        last_wasted_space = 1.0
+        while (wasted_space > 0.25) and (times < 10):
+            rw, rh = 0, 0
+            cx, cy = bounds.left, bounds.top
+            rd = {}
+            row, col = 0, 0
+            if row_wise:
+                for r in rects:
+                    cw, ch = r.width, r.height
+                    rh = max(rh, ch)
+                    if rw + cw <= bounds.width:
+                        rw += cw
+                        r.move_top_left_to((cx, cy))
+                        rd[dict_idx(row, col)] = r
+                        cx += cw
+                        col += 1
+                    else:
+                        # overflowed width, go to next row
+                        rw, col = 0, 0
+                        row += 1
+                        cx, cy = bounds.left, cy - rh
+                        r.move_top_left_to((cx, cy))
+                        rd[dict_idx(row, col)] = r
+                        col += 1
+                        cx += cw
+                        rw, rh = cw, ch
+            else:
+                for r in rects:
+                    cw, ch = r.width, r.height
+                    rw = max(rw, cw)
+                    if rh + ch <= bounds.height:
+                        rh += ch
+                        r.move_top_left_to((cx, cy))
+                        rd[dict_idx(row, col)] = r
+                        cy -= ch
+                        row += 1
+                    else:
+                        # overflowed height, go to next col
+                        rh, row = 0, 0
+                        col += 1
+                        cx, cy = cx + rw, bounds.top
+                        r.move_top_left_to((cx, cy))
+                        rd[dict_idx(row, col)] = r
+                        row += 1
+                        cy -= ch
+                        rw, rh = cw, ch
+            last_wasted_space = wasted_space
+            wasted_space = compute_wasted_space(rd, row_wise=row_wise)
+            if wasted_space > last_wasted_space:
+                if row_wise:
+                    bounds.right += 0.05 * bounds.width
+                    bounds.width = bounds.right - bounds.left
+                else:
+                    bounds.bottom -= 0.05 * bounds.height
+                    bounds.height = abs(bounds.bottom - bounds.top)
+                times = 9
+            else:
+                if row_wise:
+                    bounds.right -= 0.05 * bounds.width
+                    bounds.width = bounds.right - bounds.left
+                else:
+                    bounds.bottom += 0.05 * bounds.height
+                    bounds.height = abs(bounds.bottom - bounds.top)
+                times += 1
+
+
+        # Re-align each row or column based on vert_align and horz_align respectively
+        rows, cols = 0, 0
+        for k, v in rd.items():
+            row, col = k.split("_")
+            rows = max(rows, int(row))
+            cols = max(cols, int(col))
+        rows += 1
+        cols += 1
+        new_rects = []
+        if row_wise:
+            for row in range(rows):
+                rh = 0
+                for col in range(cols):
+                    if dict_idx(row, col) in rd:
+                        rh = max(rh, rd[dict_idx(row, col)].height)
+                for col in range(cols):
+                    if dict_idx(row, col) in rd:
+                        r = copy.copy(rd[dict_idx(row, col)])
+                        if vert_align == "bottom":
+                            r.move_bottom_left_to((r.left, r.top - rh))
+                        elif vert_align == "centre":
+                            r.move_top_left_to((r.left, r.top - rh/2 + r.height/2))
+                        new_rects.append(r)
+        else:
+            for col in range(cols):
+                cw = 0
+                for row in range(rows):
+                    if dict_idx(row, col) in rd:
+                        cw = max(cw, rd[dict_idx(row, col)].width)
+                for row in range(rows):
+                    if dict_idx(row, col) in rd:
+                        r = copy.copy(rd[dict_idx(row, col)])
+                        if horz_align == "right":
+                            r.move_top_left_to((r.left + cw - r.width, r.top))
+                        elif horz_align == "centre":
+                            r.move_top_left_to((r.left + cw/2 - r.width/2, r.top))
+                        new_rects.append(r)
+          
+        return new_rects
 
 
 def GetBoundingRect(length, width, angle):
@@ -997,3 +1292,23 @@ def grid_points_at_height(length, width, height, div, width_div=None):
     a specified height"""
     pts = grid_points_2d(length, width, div, width_div)
     return points2d_at_height(pts, height)
+
+def euler_to_rot_matrix(euler):
+    """ converts a 3D tuple of euler rotation angles into a rotation matrix """
+    ax = Identity().rotate(euler[0], XAxis)
+    ay = Identity().rotate(euler[1], YAxis)
+    az = Identity().rotate(euler[2], ZAxis)
+    rm = az * ay * ax
+    rm = rm.transpose()
+    return rm
+
+def safe_vector(v):
+    """ returns a Vector object by automatically inferring the input argument v """
+    if isinstance(v, Vector):
+        return v
+    elif isinstance(v, (tuple, list)):
+        return Vector(v[0], v[1], v[2])
+    elif isinstance(v, (float, int)):
+        return Vector(v, v, v)
+    return Vector(0, 0, 0)
+    
