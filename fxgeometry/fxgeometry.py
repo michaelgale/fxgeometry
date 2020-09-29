@@ -69,6 +69,13 @@ class Matrix(object):
         format_string = "((%f, %f, %f),\n" " (%f, %f, %f),\n" " (%f, %f, %f))"
         return format_string % tuple(values)
 
+    def is_almost_same_as(self, other, tolerance=1e-3):
+        for i in range(3):
+            for j in range(3):
+                if abs(self.rows[i][j] - other.rows[i][j]) > tolerance:
+                    return False
+        return True
+
     def __mul__(self, other):
         if isinstance(other, Matrix):
             r1 = self.rows
@@ -548,11 +555,13 @@ class Rect:
         self.height = abs(self.top - self.bottom)
 
     def __str__(self):
-        return "<Rect (%.2f,%.2f)-(%.2f,%.2f)>" % (
+        return "<Rect (%.2f,%.2f)-(%.2f,%.2f) w=%.2f h=%.2f>" % (
             self.left,
             self.top,
             self.right,
             self.bottom,
+            self.width,
+            self.height,
         )
 
     def __repr__(self):
@@ -851,12 +860,20 @@ class Rect:
 
     def overlaps(self, other):
         """Return true if a rectangle overlaps this rectangle."""
-        return (
-            self.right > other.left
-            and self.left < other.right
-            and self.top < other.bottom
-            and self.bottom > other.top
-        )
+        if self.bottom_up:
+            return (
+                self.right > other.left
+                and self.left < other.right
+                and self.top < other.bottom
+                and self.bottom > other.top
+            )
+        else:
+            return (
+                self.right > other.left
+                and self.left < other.right
+                and self.top > other.bottom
+                and self.bottom < other.top
+            )
 
     def expanded_by(self, n):
         """Return a rectangle with extended borders.
@@ -864,8 +881,8 @@ class Rect:
         Create a new rectangle that is wider and taller than the
         immediate one. All sides are extended by "n" points.
         """
-        p1 = Point(self.left - n, self.top - n)
-        p2 = Point(self.right + n, self.bottom + n)
+        p1 = Point(self.left - n, self.top + n)
+        p2 = Point(self.right + n, self.bottom - n)
         r = Rect()
         r.set_points(p1, p2)
         return r
@@ -931,8 +948,8 @@ class Rect:
             if row_wise:
                 for r in rects:
                     cw, ch = r.width, r.height
-                    rh = max(rh, ch)
                     if rw + cw <= bounds.width:
+                        rh = max(rh, ch)
                         rw += cw
                         r.move_top_left_to((cx, cy))
                         rd[dict_idx(row, col)] = r
@@ -942,17 +959,22 @@ class Rect:
                         # overflowed width, go to next row
                         rw, col = 0, 0
                         row += 1
+                        # print("OVERFLOW before setting cx,cy row=%d col=%d rw=%.1f rh=%.1f cw=%.1f ch=%.1f cx=%.1f cy=%.1f" % (row, col, rw, rh, cw, ch, cx, cy))
+
                         cx, cy = bounds.left, cy - rh
                         r.move_top_left_to((cx, cy))
+                        # print("OVERFLOW after setting cx,cy row=%d col=%d rw=%.1f rh=%.1f cw=%.1f ch=%.1f cx=%.1f cy=%.1f" % (row, col, rw, rh, cw, ch, cx, cy))
                         rd[dict_idx(row, col)] = r
                         col += 1
                         cx += cw
                         rw, rh = cw, ch
+                    # print("Rect: %s" % (r))
+                    # print("row=%d col=%d rw=%.1f rh=%.1f cw=%.1f ch=%.1f cx=%.1f cy=%.1f" % (row, col, rw, rh, cw, ch, cx, cy))
             else:
                 for r in rects:
                     cw, ch = r.width, r.height
-                    rw = max(rw, cw)
                     if rh + ch <= bounds.height:
+                        rw = max(rw, cw)
                         rh += ch
                         r.move_top_left_to((cx, cy))
                         rd[dict_idx(row, col)] = r

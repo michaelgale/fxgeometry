@@ -33,3 +33,19 @@ def test_equality():
     c = Vector(1.02, 2.5, -5.2)
     assert a.almost_same_as(c, 0.1)
     assert a.almost_same_as(c, 1e-3) == False
+
+def test_matrix_equality():
+    a = Matrix([[1.1, 2.2, 3.3], [4.4, 5.5, 6.6], [7.7, 8.8, 9.9]])
+    b = Matrix([[1.1, 2.2, 3.3], [4.4, 5.5, 6.6], [7.7, 8.8, 9.9]])
+    assert a == b
+
+    b = Matrix([[1.1, 2.2, 3.3], [4.4, 5.5005, 6.6], [7.7, 8.8, 9.9]])
+    assert a != b
+
+    b = Matrix([[1.1, 2.2, 3.3001], [4.4, 5.5, 6.6], [7.7, 8.8, 9.9]])
+    assert a != b
+
+    assert a.is_almost_same_as(b)
+
+    b = Matrix([[1.1, 2.2, 3.3011], [4.4, 5.5, 6.6], [7.7, 8.8, 9.9]])
+    assert not a.is_almost_same_as(b)

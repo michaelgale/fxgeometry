@@ -208,3 +208,40 @@ def test_anchored():
     pt2 = r6.get_bottom_right()
     assert pt1 == (-0.5, 0.5)
     assert pt2 == (1.5, -1.5)
+
+# def test_arrange():
+#     r1 = Rect()
+#     r1.set_points((-153.00,28.80), (-69.81,-43.92))
+#     r2 = Rect()
+#     r2.set_points((-69.81,28.80),(18.29,-54.00))
+#     r3 = Rect()
+#     r3.set_points((-105.74,112.08),(105.74,-112.08))
+#     r4 = Rect()
+#     r4.set_points((-57.33,71.16),(57.33,-71.16))
+#     rects = [r1, r2, r3, r4]
+#     brect = Rect()
+#     brect.set_points((-156.60,36.00), (156.60,-36.00))
+#     print("Fitting these rects:")
+#     for r in rects:
+#         print(r)
+#     print("Into this rect:\n%s" % (str(brect)))
+#     new_rects = Rect.layout_rects(
+#             rects,
+#             brect,
+#             row_wise=True,
+#             auto_adjust=False,
+#         )
+#     print("Results in these new rects:")
+#     for r in new_rects:
+#         print(r)
+    
+#     <Rect (-153.00,28.80)-(-69.81,-43.92)>
+# <Rect (-69.81,28.80)-(18.29,-54.00)>
+# <Rect (-105.74,112.08)-(105.74,-112.08)>
+# <Rect (-57.33,71.16)-(57.33,-71.16)>
+# Rects After
+
+# <Rect (-153.00,28.80)-(-44.37,-57.84)>
+# <Rect (-44.37,28.80)-(69.17,-72.72)>
+# <Rect (-153.00,-195.36)-(58.48,-419.52)>
+# <Rect (-153.00,-419.52)-(-38.35,-561.84)>
