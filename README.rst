@@ -1,3 +1,5 @@
+This repository is now deprecated. Most of its functionality has been moved to the `toolbox-py` repository instead.
+
 fxgeometry
 ==========
 
